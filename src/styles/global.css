@@ -1,0 +1,487 @@
+@import 'tailwindcss';
+
+/* Self-hosted variable fonts — no external requests, works offline. */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/vazirmatn';
+@import '@fontsource-variable/source-serif-4';
+@import '@fontsource-variable/archivo';
+
+/* ==========================================================================
+   Vortex Holding — design tokens
+
+   Palette is intentionally small: navy and white carry the brand, gold is an
+   accent used sparingly (rules, markers, single highlights) and never as a
+   background wash.
+   ========================================================================== */
+
+@theme {
+  /* --- Typography ----------------------------------------------------- */
+  --font-en: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-fa: 'Vazirmatn Variable', ui-sans-serif, system-ui, sans-serif;
+
+  /* Trade runs on an editorial face pair — a serif for headings and a grotesque
+     for UI. Self-hosted and subsetted like the others, so no external request
+     is made and the site still works offline. */
+  --font-editorial-en: 'Source Serif 4 Variable', ui-serif, Georgia, serif;
+  --font-editorial-ui: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.6;
+  --text-base: 1rem;
+  --text-base--line-height: 1.7;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.65;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.5;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 1.35;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 1.25;
+  --text-4xl: 3rem;
+  --text-4xl--line-height: 1.15;
+
+  /* --- Spacing -------------------------------------------------------- */
+  --spacing: 0.25rem;
+  --container: 75rem;
+
+  /* --- Motion --------------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+/* Responsive display type: clamps, so headings scale without breakpoint
+   jumps. Fluid for the small end, capped where it would otherwise run away. */
+@theme {
+  --text-display: clamp(2.5rem, 1.5rem + 4vw, 4rem);
+  --text-display--line-height: 1.08;
+  --text-display--letter-spacing: -0.025em;
+
+  --text-title: clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem);
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: -0.015em;
+}
+
+/* ==========================================================================
+   Typography
+
+   Two utilities, `display` and `title`, over and above the Tailwind scale.
+   Components ask for those rather than the raw `text-*` tokens: the size and
+   the face behind a heading are a design-system decision, not a per-page one.
+
+   Colour comes from the token rather than being fixed, so a heading inherits
+   its brand automatically — the same `.title` class is navy on the holding
+   site and warm white on a Trade charcoal ground, with no conditional class
+   at the call site and no pathname checks.
+
+   The Trade overrides below raise the serif and the tracking: that brand is
+   set in editorial faces, so its display type needs a larger optical size and
+   looser spacing than a corporate sans wants. Overriding the custom
+   properties rather than defining a second `trade-title` utility means the
+   whole scale re-flows together instead of drifting apart per class name.
+
+   Also defined here because the `[dir='rtl']` block further down keys off
+   these same two class names.
+   ========================================================================== */
+
+@utility display {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  line-height: var(--text-display--line-height);
+  letter-spacing: var(--text-display--letter-spacing);
+  font-weight: var(--font-display-weight, 600);
+  color: var(--brand-navy);
+}
+
+@utility title {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+  letter-spacing: var(--text-title--letter-spacing);
+  font-weight: var(--font-display-weight, 600);
+  color: var(--brand-navy);
+}
+
+/* --------------------------------------------------------------------------
+   Motion
+
+   One entrance, used sparingly on hero and section headings. The
+   prefers-reduced-motion block above collapses animation durations to ~0, so
+   reduced-motion users get the finished state immediately with no extra
+   branch here. Deliberately transform + opacity only: both composite on the
+   GPU and neither triggers layout.
+   -------------------------------------------------------------------------- */
+@utility reveal {
+  animation: reveal-up 0.55s var(--ease-standard) both;
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Brand palettes
+
+   Each brand in the ecosystem (Vortex Holding, Trade, Battery) owns a palette
+   of plain CSS custom properties. Colours reach Tailwind through the
+   `@theme inline` block below, so a brand is applied purely by setting
+   `data-brand` on a wrapper — no class-name swapping, no per-brand bundle.
+
+   To add a brand: define `--brand-*` on a `[data-brand="<id>"]` selector and
+   register the id in src/app/brands.ts.
+   ========================================================================== */
+
+:root,
+[data-brand='holding'] {
+  --brand-navy: #0b1f33;
+  --brand-navy-primary: #123653;
+  --brand-blue-muted: #52718a;
+  --brand-off-white: #f6f8fa;
+  --brand-white: #ffffff;
+  --brand-gray: #657586;
+  --brand-border: #e2e8ef;
+  --brand-gold: #c7a66b;
+
+  --font-display-latin: var(--font-en);
+  --font-display-weight-latin: 600;
+}
+
+/* --- VORTEX TRADE ---------------------------------------------------------
+   An independent identity, not a reskin of the holding: warm white paper, deep
+   graphite and charcoal grounds, one muted copper accent. Deliberately warm
+   where the parent is cool, and a serif display face against the parent's
+   geometric sans, so the two brands are distinguishable in a screenshot at a
+   glance.
+
+   The accent is muted on purpose. A saturated orange at this contrast fails
+   WCAG AA for body text on both its grounds, so copper is used for rules,
+   icons, hover borders and button fills, and warm white carries the type on
+   the dark grounds.
+
+   NOTE ON ORDER: the brand palettes set `--font-display-latin`, not
+   `--font-display`, and that split is load-bearing. See the direction overrides
+   below.
+   ------------------------------------------------------------------------- */
+[data-brand='trade'] {
+  --brand-navy: #1f2328; /* graphite — display and body type */
+  --brand-navy-primary: #2f353c; /* charcoal — buttons, hover borders */
+  --brand-blue-muted: #6d6a63; /* warm neutral for meta copy */
+  --brand-off-white: #f1ede6; /* warm paper */
+  --brand-white: #fbf9f5; /* the site's lightest surface */
+  --brand-gray: #565b62;
+  --brand-border: #ded7cb; /* hairline, warm rather than blue-grey */
+  --brand-gold: #b06f38; /* muted copper */
+
+  --font-display-latin: var(--font-editorial-en);
+  --font-display-weight-latin: 500;
+}
+
+/* --- VORTEX BATTERY --------------------------------------------------------
+   The third identity in the ecosystem, and the furthest from both others.
+   Neither warm nor corporate: a cool deep graphite-navy, near-white and light
+   grey grounds, and one electric cyan. Trade is warm paper and copper; the
+   holding is cool navy and gold; this is cool *and* dark, and the accent is the
+   only saturated colour anywhere in the system.
+
+   THE ACCENT NEVER CARRIES TEXT. Cyan on white is 2.0:1 and white on cyan is
+   the same again by symmetry — both fail WCAG AA for body text by a wide
+   margin, and no amount of "it's only a small label" changes that. So the rule
+   the whole brand obeys is:
+
+       cyan is drawn, never written.
+       It is a rule, a border, an icon, a marker, or a ground *behind dark
+       navy type* — never a ground behind white type, and never type itself.
+
+   That is why the primary button here is a cyan fill carrying navy text (9:1)
+   where Trade's copper button carries white (4:1, below AA). The constraint
+   produced a better-looking button rather than a worse one.
+
+   `--font-display-latin` is Archivo, not a serif: a catalogue's headings sit
+   above specification tables and part numbers, and a grotesque matches the
+   register in a way that an editorial serif would not. Same load-bearing split
+   as Trade's — see the direction overrides below.
+   ------------------------------------------------------------------------- */
+[data-brand='battery'] {
+  --brand-navy: #0d1520; /* deep graphite-navy — display type, dark grounds */
+  --brand-navy-primary: #16212f; /* raised panel, hover borders, button hover */
+  --brand-blue-muted: #5a6b7c; /* cool grey-blue for meta labels (5.5:1) */
+  --brand-off-white: #f2f5f8; /* light grey section ground */
+  --brand-white: #ffffff; /* card surfaces */
+  --brand-gray: #55636f; /* body copy (6.2:1 on white) */
+  --brand-border: #dce3ea; /* hairline, cool grey */
+  --brand-gold: #16c8e0; /* electric cyan — see the rule above */
+
+  --font-display-latin: var(--font-editorial-ui);
+  --font-display-weight-latin: 600;
+}
+
+/* Semantic danger, shared rather than per-brand: the validation errors on the
+   three inquiry forms mean the same thing everywhere, so one red serves all
+   three palettes. #B3261E on white is 6.5:1 — AA for any text size. */
+:root {
+  --brand-danger: #b3261e;
+}
+
+/* ==========================================================================
+   Direction overrides
+
+   Both blocks that change direction-sensitive values — the type scale and the
+   display face — live here, after the brand palettes rather than beside the
+   `@theme` declarations they adjust, and are qualified with `:root` so they
+   win on specificity instead of on source order.
+
+   THE SPLIT BETWEEN `--font-display-latin` AND `--font-display`
+
+   A brand palette is applied to a wrapper div, but `dir` is an attribute on
+   <html> and is not inherited as a matched selector. So the two facts a brand
+   needs — "I am Trade" and "the document is RTL" — are visible to CSS on
+   two different elements, and no single selector can see both.
+
+   A declaration on an element always beats inheritance from an ancestor,
+   whatever their relative specificity. So if the brand palettes set
+   `--font-display` directly, the wrapper's Latin serif would always win over
+   the Persian face declared on <html>, and every Persian heading in the
+   ecosystem would render in Source Serif — a face with no Arabic-script
+   coverage. Raising specificity does not fix this; only removing the wrapper
+   declaration does.
+
+   So brands declare an *input* and the direction declares the *result*:
+
+       [data-brand='…']  ->  --font-display-latin      (which face)
+       :root[dir='…']    ->  --font-display           (the face, resolved
+                                                           for this direction)
+
+   The wrapper's Latin value inherits down untouched, and :root overrides it
+   wherever it wins. One rule covers both brands and both directions.
+   ========================================================================== */
+
+/* Display type in Persian. Both the scale and the tracking come from here
+   rather than from a second utility, so an RTL heading is the LTR heading
+   with Arabic-script metrics instead of a separately maintained pair. Inter
+   carries the Latin glyphs inside Persian headings (product names, digits)
+   and Vazirmatn carries the Persian ones. */
+:root[dir='rtl'] {
+  --text-display: clamp(2.25rem, 1.4rem + 3.4vw, 3.5rem);
+  --text-title: clamp(1.625rem, 1.25rem + 1.5vw, 2.25rem);
+  /* Arabic script has no editorial serif to pair with, so Persian headings
+     switch to the sans. Source Serif has no Persian coverage at all and would
+     fall through to a system serif, word by word. */
+  --font-display: var(--font-fa);
+  --font-display-weight: 600;
+}
+
+/* Resolved for a left-to-right document. `:root` unscoped, so this is the
+   weaker of the two rules and the `[dir='rtl']` rule above simply outranks it
+   — no ordering between these two has to be preserved. */
+:root {
+  --font-display: var(--font-display-latin);
+  --font-display-weight: var(--font-display-weight-latin);
+}
+
+/* `inline` inlines each var() into the generated utility, so utilities resolve
+   against the active brand scope at runtime rather than snapshotting :root. */
+@theme inline {
+  --color-navy: var(--brand-navy);
+  --color-navy-primary: var(--brand-navy-primary);
+  --color-blue-muted: var(--brand-blue-muted);
+  --color-off-white: var(--brand-off-white);
+  --color-white: var(--brand-white);
+  --color-gray: var(--brand-gray);
+  --color-line: var(--brand-border);
+  --color-gold: var(--brand-gold);
+  --color-danger: var(--brand-danger);
+
+  /* Semantic roles used by components, mapped onto the palette above. */
+  --color-surface: var(--brand-white);
+  --color-surface-muted: var(--brand-off-white);
+  --color-fg: var(--brand-navy);
+  --color-fg-muted: var(--brand-gray);
+  --color-accent: var(--brand-gold);
+
+  /* Type. Each brand picks its own display face, so a heading changes family
+     when the brand scope changes rather than when the page changes. */
+  --font-sans: var(--font-en);
+  --font-display: var(--font-en);
+  --font-editorial: var(--font-editorial-en);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* The base ground and text colour. `transparent` rather than the brand
+     surface: <body> is an ancestor of every brand wrapper, so painting it
+     would make the page ground behind the brand the holding's colour even
+     while a Trade page is mounted. TradeLayout and SiteLayout both set their
+     own opaque ground on their wrapper div, so nothing shows through — and
+     overscroll now reveals the trade surface instead of white. */
+  body {
+    margin: 0;
+    background-color: transparent;
+    color: var(--brand-navy);
+    font-family: var(--font-en);
+    font-size: 1rem;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  [data-brand] {
+    background-color: var(--brand-white);
+  }
+
+  /* Persian typography. Switched by <html dir="rtl"> — see useDocumentLocale —
+     so the whole document moves together rather than each subtree deciding. */
+  [dir='rtl'] {
+    font-family: var(--font-fa);
+  }
+
+  /* Persian glyphs sit taller and looser than Latin at the same nominal size;
+     more leading keeps multi-line paragraphs from colliding. */
+  [dir='rtl'] body {
+    line-height: 2;
+  }
+
+  [dir='rtl'] h1,
+  [dir='rtl'] h2,
+  [dir='rtl'] h3 {
+    line-height: 1.45;
+    letter-spacing: 0;
+  }
+
+  /* Inter's tight display tracking hurts Arabic-script word shaping. */
+  [dir='rtl'] :is(h1, h2, h3, .display, .title) {
+    letter-spacing: normal;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: var(--font-display-weight, 600);
+    color: var(--brand-navy);
+    text-wrap: balance;
+  }
+
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brand-navy-primary);
+    outline-offset: 2px;
+  }
+
+  /* Urgent only when a component has not provided its own. */
+  [dir='rtl'] :focus-visible {
+    outline-color: var(--brand-gold);
+  }
+
+  /* --- VORTEX TRADE -----------------------------------------------------
+     Two brand-scoped typography settings. These are brand decisions, not
+     per-page ones, so they key off the brand scope rather than a pathname:
+     no component anywhere has to ask what route it is on.
+
+     UI text moves to the grotesque so the serif is reserved for headings and
+     editorial passages — the way an editorial layout actually reads, and what
+     keeps a long specification list in Archivo rather than serif body copy.
+
+     `h1-h4` loses its display weight override here so a heading inside an
+     editorial passage (`.trade-lede`) sits at paragraph weight instead of
+     shouting from the middle of a sentence.
+     ------------------------------------------------------------------------- */
+  [data-brand='trade'] {
+    font-family: var(--font-editorial-ui);
+  }
+
+  [data-brand='trade'] h1,
+  [data-brand='trade'] h2,
+  [data-brand='trade'] h3,
+  [data-brand='trade'] h4 {
+    font-weight: var(--font-display-weight);
+  }
+
+  [data-brand='trade'] .trade-lede {
+    font-weight: 400;
+    text-wrap: pretty;
+  }
+
+  /* --- VORTEX BATTERY -----------------------------------------------------
+     Two brand-scoped rules, for the same reason Trade has two: these are brand
+     decisions rather than page decisions, so they key off the brand scope and
+     no component has to ask what route it is on.
+
+     Headings drop to weight 600 rather than Trade's display weight. A catalogue
+     page stacks a lot of them — four cards, then six more, then a section head
+     — and at a heavier weight the page becomes a wall of shouting type instead
+     of a technical document.
+
+     `.battery-mono` is the one genuinely Battery-only type utility in the
+     system: specification values, part numbers and cell formats are set in a
+     monospaced face at a slightly tighter tracking, which is what makes a
+     column of "18.5 × 65.0 × 10.2 mm" line up. It resolves per direction like
+     the display face does — Latin gets a real mono, Persian falls back to the
+     sans rather than rendering tofu, since none of the bundled faces carry
+     Arabic-script monospace.
+     ------------------------------------------------------------------------- */
+  [data-brand='battery'] h1,
+  [data-brand='battery'] h2,
+  [data-brand='battery'] h3,
+  [data-brand='battery'] h4 {
+    font-weight: var(--font-display-weight);
+  }
+}
+
+@theme {
+  /* Latin-only by design; the RTL resolution is declared with the direction
+     overrides below for the same reason `--font-display` is. */
+  --font-mono: ui-monospace, 'SF Mono', 'DejaVu Sans Mono', monospace;
+}
+
+:root[dir='rtl'] {
+  --font-spec: var(--font-fa);
+  --font-spec-latin: var(--font-mono);
+}
+
+:root {
+  --font-spec: var(--font-mono);
+  --font-spec-latin: var(--font-mono);
+}
+
+/* Specification values, part numbers, cell formats — anything that should
+   line up in a column. */
+@utility battery-mono {
+  font-family: var(--font-spec);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
