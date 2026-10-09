@@ -2,7 +2,6 @@ import { useEffect, useId, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 
 import { useLocale } from '../../../app/locale-context'
-import { A11Y_LABELS } from '../../../app/copy'
 import { BATTERY_CHROME } from '../../../app/battery-copy'
 import { BATTERY_NAV, BATTERY_PARENT_LINK } from '../../../app/battery-navigation'
 import { cn } from '../../lib/cn'
